@@ -517,7 +517,3 @@ AI/ML Engineer | Bengaluru, India
 - Submitted to Microsoft Agents League Hackathon 2026 — Enterprise Agents track
 
 ---
-
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE)
