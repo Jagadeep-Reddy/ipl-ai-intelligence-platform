@@ -1,1 +1,0 @@
-host replication all ::1/128 trust  cp pg_hba.conf ipl_postgres:/var/lib/postgresql/data/pg_hba.conf

@@ -53,3 +53,8 @@ error.txt
 pgdata/
 qdrant_data/
 redis_data/
+
+railway.toml
+
+pg_hba.conf
+pg_hba.confdocker
