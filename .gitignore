@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+.venv/
+venv/
+env/
+
+# Models (tracked via DVC or stored in Railway volumes)
+ml/models/*.joblib
+ml/models/*.pkl
+
+# RAG artefacts (rebuilt from source)
+rag/bm25_index.pkl
+rag/documents.json
+
+# Data (never commit raw or processed CSVs)
+data/raw/
+data/processed/
+
+# Environment
+.env
+*.env.local
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+logs/
+error.txt
+
+# Docker volumes (local)
+pgdata/
+qdrant_data/
+redis_data/

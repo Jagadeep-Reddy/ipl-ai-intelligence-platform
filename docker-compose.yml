@@ -1,0 +1,100 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL with pgvector ────────────────────────────────────────────────
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: ipl_postgres
+    environment:
+      POSTGRES_USER: ipl
+      POSTGRES_PASSWORD: ipl_secret
+      POSTGRES_DB: ipl_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ipl -d ipl_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Qdrant Vector Database ──────────────────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: ipl_qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+
+  # ── Redis Cache ─────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: ipl_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── FastAPI Backend ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ipl_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://ipl:ipl_secret@postgres:5432/ipl_db
+      QDRANT_URL: http://qdrant:6333
+      REDIS_URL: redis://redis:6379/0
+    env_file:
+      - .env
+    volumes:
+      - ./ml/models:/app/ml/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Streamlit Frontend ──────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ipl_frontend
+    ports:
+      - "8501:8501"
+    environment:
+      BACKEND_URL: http://backend:8000
+    env_file:
+      - .env
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0
+
+volumes:
+  pgdata:
+  qdrant_data:
+  redis_data:

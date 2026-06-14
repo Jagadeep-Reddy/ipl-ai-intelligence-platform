@@ -1,0 +1,7 @@
+{
+  "faithfulness": 0.981,
+  "context_precision": 0.3749,
+  "context_recall": 0.2974,
+  "last_evaluated": "2026-06-14T10:44:53.895907+00:00",
+  "total_questions": 51
+}
